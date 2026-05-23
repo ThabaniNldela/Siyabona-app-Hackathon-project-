@@ -1,27 +1,50 @@
-let reports = [];
+const Report = require("../models/Report");
 
-const reportNumber = (req, res) => {
-  const { number, reason } = req.body;
+const reportScam = async (req, res) => {
+  try {
+    const { phoneNumber, message, riskLevel } = req.body;
 
-  const report = {
-    id: reports.length + 1,
-    number,
-    reason
-  };
+    const newReport = new Report({
+      phoneNumber,
+      message,
+      riskLevel,
+    });
 
-  reports.push(report);
+    await newReport.save();
 
-  res.json({
-    message: "Report submitted",
-    report
-  });
+    res.status(201).json({
+      success: true,
+      message: "Scam report saved successfully",
+      data: newReport,
+    });
+
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
 };
 
-const getReports = (req, res) => {
-  res.json(reports);
+const getReports = async (req, res) => {
+  try {
+    const reports = await Report.find().sort({ createdAt: -1 });
+
+    res.status(200).json(reports);
+
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch reports",
+    });
+  }
 };
 
 module.exports = {
-  reportNumber,
-  getReports
+  reportScam,
+  getReports,
 };

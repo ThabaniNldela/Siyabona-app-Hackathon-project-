@@ -1,11 +1,19 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
+const reportRoutes = require("./routes/reportRoutes");
 
 const app = express();
 
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.log(err));
+
 app.use(cors());
 app.use(express.json());
-
+app.use("/api", reportRoutes);
 app.get("/", (req, res) => {
   res.send("Welcome to Siyabona Backend");
 });
@@ -89,26 +97,7 @@ app.post("/scan-message", (req, res) => {
     reasons
   });
 });
-let reports = [];
-app.post("/report-number", (req, res) => {
-  const { number, reason } = req.body;
 
-  const report = {
-    id: reports.length + 1,
-    number,
-    reason
-  };
-
-  reports.push(report);
-
-  res.json({
-    message: "Scam number reported successfully",
-    report
-  });
-});
-app.get("/reports", (req, res) => {
-  res.json(reports);
-});
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });
