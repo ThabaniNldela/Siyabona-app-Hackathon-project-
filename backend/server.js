@@ -1,3 +1,4 @@
+const db = require("./database");
 const express = require("express");
 const cors = require("cors");
 
@@ -88,26 +89,37 @@ app.post("/scan-message", (req, res) => {
     status,
     reasons
   });
-});
-let reports = [];
+}); 
 app.post("/report-number", (req, res) => {
   const { number, reason } = req.body;
 
-  const report = {
-    id: reports.length + 1,
-    number,
-    reason
-  };
+  db.run(
+    "INSERT INTO reports (number, reason) VALUES (?, ?)",
+    [number, reason],
+    function (err) {
+      if (err) {
+        return res.status(500).json({
+          error: err.message
+        });
+      }
 
-  reports.push(report);
-
-  res.json({
-    message: "Scam number reported successfully",
-    report
-  });
+      res.json({
+        message: "Scam number reported successfully",
+        id: this.lastID
+      });
+    }
+  );
 });
 app.get("/reports", (req, res) => {
-  res.json(reports);
+  db.all("SELECT * FROM reports", [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({
+        error: err.message
+      });
+    }
+
+    res.json(rows);
+  });
 });
 app.listen(5000, () => {
   console.log("Server running on port 5000");
